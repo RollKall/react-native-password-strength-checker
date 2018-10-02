@@ -72,7 +72,7 @@ export default class PasswordStrengthChecker extends Component {
     barWidthPercent: 70,
     showBarOnEmpty: true
   };
-  
+
   static propTypes = {
     onChangeText: PropTypes.func.isRequired,
     minLength: PropTypes.number,
@@ -80,6 +80,7 @@ export default class PasswordStrengthChecker extends Component {
     strengthLevels: PropTypes.array,
     tooShort: PropTypes.object,
     minLevel: PropTypes.number,
+    wrapperStyle : ViewPropTypes.style,
     inputWrapperStyle: ViewPropTypes.style,
     inputStyle: TextInput.propTypes.style,
     strengthWrapperStyle: ViewPropTypes.style,
@@ -90,7 +91,7 @@ export default class PasswordStrengthChecker extends Component {
     barWidthPercent: PropTypes.number,
     showBarOnEmpty: PropTypes.bool
   };
-  
+
   constructor(props) {
     super(props);
     this.animatedInnerBarWidth = new Animated.Value(0);
@@ -100,14 +101,14 @@ export default class PasswordStrengthChecker extends Component {
       isTooShort: false
     }
   }
-  
+
   componentDidMount() {
     const { showBarOnEmpty } = this.props;
     if (showBarOnEmpty) {
       this.showFullBar();
     }
   }
-  
+
   showFullBar(isShow = true) {
     const { barWidthPercent } = this.props;
     const barWidth = isShow ? widthByPercent(barWidthPercent) : 0;
@@ -116,7 +117,7 @@ export default class PasswordStrengthChecker extends Component {
       duration: 20
     }).start();
   }
-  
+
   isTooShort(password) {
     const { minLength } = this.props;
     if (!minLength) {
@@ -124,19 +125,19 @@ export default class PasswordStrengthChecker extends Component {
     }
     return password.length < minLength;
   }
-  
+
   isMatchingRules(password) {
     const { ruleNames } = this.props;
     if (!ruleNames) {
       return true;
     }
-    
+
     const rules = _.chain(ruleNames)
       .split('|')
       .filter(rule => !!rule)
       .map(rule => rule.trim())
       .value();
-    
+
     for (const rule of rules) {
       if (!this.isMatchingRule(password, rule)) {
         return false;
@@ -144,7 +145,7 @@ export default class PasswordStrengthChecker extends Component {
     }
     return true;
   }
-  
+
   isMatchingRule(password, rule) {
     switch (rule) {
       case 'symbols':
@@ -163,7 +164,7 @@ export default class PasswordStrengthChecker extends Component {
         return true;
     }
   }
-  
+
   calculateScore(text) {
     if (!text) {
       this.setState({
@@ -171,29 +172,29 @@ export default class PasswordStrengthChecker extends Component {
       });
       return -1;
     }
-    
+
     if (this.isTooShort(text)) {
       this.setState({
         isTooShort: true
       });
       return 0;
     }
-    
+
     this.setState({
       isTooShort: false
     });
-    
+
     if (!this.isMatchingRules(text)) {
       return 0;
     }
-    
+
     return zxcvbn(text).score;
   }
-  
+
   getPasswordStrengthLevel(password) {
     return this.calculateScore(password);
   }
-  
+
   onChangeText(password) {
     const level = this.getPasswordStrengthLevel(password);
     this.setState({
@@ -202,7 +203,7 @@ export default class PasswordStrengthChecker extends Component {
     const isValid = this.isMatchingRules(password) && level >= this.props.minLevel;
     this.props.onChangeText(password, isValid);
   }
-  
+
   renderPasswordInput() {
     const { inputWrapperStyle, inputStyle } = this.props;
     return (
@@ -220,7 +221,7 @@ export default class PasswordStrengthChecker extends Component {
       </View>
     );
   }
-  
+
   renderPasswordStrength() {
     const {
       barWidthPercent,
@@ -233,28 +234,28 @@ export default class PasswordStrengthChecker extends Component {
       strengthDescriptionStyle,
       showBarOnEmpty
     } = this.props;
-    
+
     const barWidth = widthByPercent(barWidthPercent);
-    
+
     const { level } = this.state;
-    
+
     let strengthLevelBarStyle = {}, strengthLevelLabelStyle = {}, strengthLevelLabel = '', innerBarWidth = 0;
     if (level !== -1) {
-      
+
       if (!showBarOnEmpty) {
         this.showFullBar();
       }
-      
+
       innerBarWidth = widthByPercent(strengthLevels[level].widthPercent, barWidth);
       strengthLevelBarStyle = {
         backgroundColor: strengthLevels[level].innerBarColor
       };
-      
+
       strengthLevelLabelStyle = {
         color: strengthLevels[level].labelColor
       };
       strengthLevelLabel = strengthLevels[level].label;
-      
+
       if (tooShort.enabled && this.state.isTooShort) {
         innerBarWidth = widthByPercent(tooShort.widthPercent, barWidth) || widthByPercent(strengthLevels[level].widthPercent, barWidth);
         strengthLevelBarStyle = {
@@ -270,12 +271,12 @@ export default class PasswordStrengthChecker extends Component {
         this.showFullBar(false);
       }
     }
-    
+
     Animated.timing(this.animatedInnerBarWidth, {
       toValue: innerBarWidth,
       duration: 800
     }).start();
-    
+
     return (
       <View style={[styles.passwordStrengthWrapper, strengthWrapperStyle]}>
         <Animated.View style={[styles.passwordStrengthBar, strengthBarStyle, { backgroundColor: barColor, width: this.animatedBarWidth }]}>
@@ -285,10 +286,12 @@ export default class PasswordStrengthChecker extends Component {
       </View>
     );
   }
-  
+
   render() {
+    const { wrapperStyle } = this.props;
+
     return (
-      <View style={styles.wrapper}>
+      <View style={[styles.wrapper, wrapperStyle]}>
         {this.renderPasswordInput()}
         {this.renderPasswordStrength()}
       </View>
