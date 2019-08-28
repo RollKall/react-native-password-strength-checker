@@ -96,11 +96,14 @@ export default class PasswordStrengthChecker extends Component {
     super(props);
     this.animatedInnerBarWidth = new Animated.Value(0);
     this.animatedBarWidth = new Animated.Value(0);
+
     this.state = {
       level: -1,
       isTooShort: false
-    }
-  }
+    };
+
+    this.inputRef = React.createRef();
+   }
 
   componentDidMount() {
     const { showBarOnEmpty } = this.props;
@@ -165,6 +168,22 @@ export default class PasswordStrengthChecker extends Component {
     }
   }
 
+  focus() {
+    try {
+      this.inputRef.current.focus();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  blur() {
+    try {
+      this.inputRef.current.blur();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   calculateScore(text) {
     if (!text) {
       this.setState({
@@ -217,6 +236,7 @@ export default class PasswordStrengthChecker extends Component {
           {...this.props}
           style={[styles.input, inputStyle]}
           onChangeText={text => this.onChangeText(text)}
+          ref={this.inputRef}
         />
       </View>
     );
